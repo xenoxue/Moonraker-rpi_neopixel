@@ -32,7 +32,6 @@ class Strip():
                  name: str,
                  cfg: ConfigHelper):
         self.server = cfg.get_server()
-        self.request_mutex = asyncio.Lock()
 
         self.name = name
 
@@ -44,7 +43,6 @@ class Strip():
         self.chain_count: int = cfg.getint("chain_count", 1)
         ORDER = neopixel.RGB
         self.neopixel = neopixel.NeoPixel(board.D18, 60, pixel_order=ORDER)
-        self.neopixel.fill((255,255,255))
         # Supports rgbw always
         self._chain_data = bytearray(
             self.chain_count * self._COLORSIZE)

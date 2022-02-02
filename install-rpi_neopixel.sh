@@ -30,13 +30,13 @@ add_updater()
     update_section=$(grep -c '\[update_manager rpi_neopixel\]' \
     ${HOME}/klipper_config/moonraker.conf || true)
     if [ "${update_section}" -eq 0 ]; then
-    echo -e "\n" >> ${HOME}/klipper_config/moonraker.conf
+        echo -e "\n" >> ${HOME}/klipper_config/moonraker.conf
     while read -r line; do
         echo -e "${line}" >> ${HOME}/klipper_config/moonraker.conf
     done < "$PWD/file_templates/moonraker_update.txt"
-    echo -e "\n" >> ${HOME}/klipper_config/moonraker.conf
+        echo -e "\n" >> ${HOME}/klipper_config/moonraker.conf
     else
-    echo -e "[update_manager rpi_neopixel] already exist in moonraker.conf [SKIPPED]"
+        echo -e "[update_manager rpi_neopixel] already exist in moonraker.conf [SKIPPED]"
     fi
 }
 
@@ -66,7 +66,7 @@ edit_service()
 {
     echo "Adding SUDO command to run Moonraker Service..."
     if sudo grep -E "^ExecStart=sudo*" /etc/systemd/system/moonraker.service; then
-        echo "Moonraker Service already running with SUDO..."
+        echo "Moonraker Service already running with SUDO [SKIPPED]"
     else
         sudo sed -i "s|^ExecStart.*$|ExecStart=sudo -E /home/pi/moonraker-env/bin/python /home/pi/moonraker/moonraker/moonraker.py -c /home/pi/klipper_config/moonraker.conf -l /home/pi/klipper_logs/moonraker.log|g" /etc/systemd/system/moonraker.service
         echo "Reloading Moonraker Service file..."
@@ -78,7 +78,7 @@ edit_service()
 restart_moonraker()
 {
     echo "Restarting Moonraker..."
-    sudo systemctl restart Moonraker
+    sudo systemctl restart moonraker
 }
 
 # Helper functions
