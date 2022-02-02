@@ -53,9 +53,7 @@ class Strip():
 
     async def _init(self) -> None:
         # subscribe neopixel update function
-            
         kapis: APIComp = self.server.lookup_component('klippy_apis')
-        #sub: Dict[str, Optional[List[str]]] = {"neopixel case": None}
         try:
             await kapis.subscribe_objects(
                 {f'neopixel {self.name}': None})
@@ -64,8 +62,11 @@ class Strip():
                 f"{e}\nUnable to subscribe to rpi_neopixel {self.name} object")
         else:
             logging.info(f"rpi_neopixel {self.name} Subscribed")
+        
+        # register status_update event
         self.server.register_event_handler("server:status_update", self._status_update)
 
+    # auto update color
     async def _status_update(self, data: Dict[str, Any]) -> None:
         name = f"neopixel {self.name}"
         if name not in data:
@@ -73,7 +74,6 @@ class Strip():
         ps = data[name]
         if "color_data" in ps:
             cd = ps["color_data"][0]
-            #logging.info(f"color_data {cd}")
             red = cd.get("R",None)
             green = cd.get("G",None)
             blue = cd.get("B",None)
@@ -117,6 +117,7 @@ class Strip():
         led_data = [red, green, blue, white]
         self.neopixel.fill((red,green,blue))
         if index is None:
+            
             self._chain_data[:] = led_data * self.chain_count
         else:
             elem_size = len(led_data)
@@ -222,10 +223,27 @@ class RPI_NEOPIXEL:
 
         prefix_sections = config.get_prefix_sections("rpi_neopixel")
         logging.info(f"rpi_neopixel component loading strips: {prefix_sections}")
+        self.strips = {}
         for section in prefix_sections:
             cfg = config[section]
-        self.strips = {}
-        self.strips["case"] = Strip("case",cfg)
+
+            try:
+                name_parts = cfg.get_name().split(maxsplit=1)
+                if len(name_parts) != 2:
+                    raise cfg.error(
+                        f"Invalid Section Name: {cfg.get_name()}")
+                name: str = name_parts[1]
+
+                logging.info(f"rpi_neopixel strip: {name}")
+                cfg.get("color_order", "", deprecate=True)
+
+                self.strips[name] = Strip(name,cfg)
+
+            except Exception as e:
+                # Ensures errors such as "Color not supported" are visible
+                msg = f"Failed to initialise strip [{cfg.get_name()}]\n{e}"
+                self.server.add_warning(msg)
+                continue
 
         # Register two remote methods for GCODE
         self.server.register_remote_method("set_rpi_neopixel_state", self.set_rpi_neopixel_state)
@@ -300,7 +318,6 @@ class RPI_NEOPIXEL:
                        white: float = 0.,
                        index: Optional[int] = None,
                        transmit: int = 1) -> None:
-        #self.strips["case"].fill((red,green,blue))
         if strip not in self.strips:
             logging.info(f"Unknown RPI_NEOPIXEL strip: {strip}")
             return
