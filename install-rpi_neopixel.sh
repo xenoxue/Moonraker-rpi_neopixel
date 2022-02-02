@@ -1,6 +1,6 @@
 #!/bin/bash
 MOONRAKER_PATH="${HOME}/moonraker"
-MOONRAKER-ENV_PATH="${HOME}/moonraker-env"
+MOONRAKER_ENV_PATH="${HOME}/moonraker-env"
 KLIPPER_CONFIG_PATH="${HOME}/klipper_config"
 
 # Step 1:  Verify Moonraker has been installed
@@ -45,9 +45,9 @@ add_updater()
 install_neopixel()
 {
     echo "Installing adafruit-circuitpython-neopixel..."
-    sudo ${MOONRAKER-ENV_PATH}/bin/pip install rpi_ws281x adafruit-circuitpython-neopixel
+    sudo ${MOONRAKER_ENV_PATH}/bin/pip install rpi_ws281x adafruit-circuitpython-neopixel
     echo "Installing adafruit-blinka..."
-    sudo ${MOONRAKER-ENV_PATH}/bin/pip install --force-reinstall adafruit-blinka
+    sudo ${MOONRAKER_ENV_PATH}/bin/pip install --force-reinstall adafruit-blinka
 }
 
 # Step 5: ADD Sudoer nopasswd permission file to give more access for pi user.
@@ -57,7 +57,7 @@ add_permission()
     if sudo grep -E "^pi*" /etc/sudoers; then
         sudo sed -i "s|^pi.*$|pi    ALL=(ALL)   NOPASSWD:SETENV: /home/pi/moonraker-env/bin/python|g" /etc/sudoers
     else
-        sudo echo "pi   ALL=(ALL)   NOPASSWD:SETENV: /home/pi/moonraker-env/bin/python" >> /etc/sudoers
+		sudo sh -c "echo \"pi    ALL=(ALL)   NOPASSWD:SETENV: /home/pi/moonraker-env/bin/python\" >> /etc/sudoers"
     fi
 }
 
@@ -108,6 +108,6 @@ verify_ready
 link_extension
 add_updater
 install_neopixel
-replace_path
+add_permission
 edit_service
 restart_moonraker
