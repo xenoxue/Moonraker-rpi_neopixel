@@ -34,6 +34,11 @@ This is work in progress and currently in "alpha" state.
     cd Moonraker-rpi_neopixel
     ./install-rpi_neopixel.sh
 
+## Documentation 使用
+Documentation can be found [here](docs/usage.md).
+
+使用文档请点击 [这里](docs/usage.md).
+
 ## Credit
 
 - julianschill for [LED Effects for Klipper](https://github.com/julianschill/klipper-led_effect)
