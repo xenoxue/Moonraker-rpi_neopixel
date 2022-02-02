@@ -1,12 +1,12 @@
-# RPI_NEOPIXEL neopixel support
+# WLED neopixel support
 #
 # Copyright (C) 2021-2022 Richard Mitchell <richardjm+moonraker@gmail.com>
 #
 # This file may be distributed under the terms of the GNU GPLv3 license.
 
-# Component to control the rpi_neopixel neopixel home system from AirCookie
-# Github at https://github.com/Aircoookie/RPI_NEOPIXEL
-# Wiki at https://kno.rpi_neopixel.ge/
+# Component to control the wled neopixel home system from AirCookie
+# Github at https://github.com/Aircoookie/WLED
+# Wiki at https://kno.wled.ge/
 
 from __future__ import annotations
 from enum import Enum
@@ -26,7 +26,7 @@ class OnOff(str, Enum):
     off: str = "off"
 
 class Strip():
-    _COLORSIZE: int = 4
+    _COLORSIZE: int = 3
 
     def __init__(self: Strip,
                  name: str,
@@ -41,9 +41,31 @@ class Strip():
         self.initial_blue: float = cfg.getfloat("initial_blue", 0.5)
         self.initial_white: float = cfg.getfloat("initial_white", 0.5)
         self.chain_count: int = cfg.getint("chain_count", 1)
-        ORDER = neopixel.RGB
-        self.neopixel = neopixel.NeoPixel(board.D18, 60, pixel_order=ORDER)
-        # Supports rgbw always
+        self.gpio: int = cfg.getint("gpio", 18)
+        self.order: str = cfg.get("order", "RGB")
+        self.brightness: float = cfg.getfloat("brightness", 1)
+        self.auto_write: bool = cfg.getboolean("auto_write", True)
+        self.pixel_pin = board.D18
+        if self.gpio == 10:
+            self.pixel_pin = board.D10
+        elif self.gpio == 12:
+            self.pixel_pin = board.D12
+        elif self.gpio == 21:
+            self.pixel_pin = board.D21
+
+        self.pixel_order = neopixel.RGB
+        if self.order == "GRB":
+            self.pixel_order = neopixel.GRB
+        elif self.order == "RGBW":
+            self.pixel_order = neopixel.RGBW
+            self._COLORSIZE = 4
+        elif self.order == "GRBW":
+            self.pixel_order = neopixel.GRBW
+            self._COLORSIZE = 4
+        
+
+        self.neopixel = neopixel.NeoPixel(self.pixel_pin, self.chain_count, brightness=self.brightness, auto_write=self.auto_write, pixel_order=self.pixel_order)
+        
         self._chain_data = bytearray(
             self.chain_count * self._COLORSIZE)
 
@@ -71,13 +93,17 @@ class Strip():
         name = f"neopixel {self.name}"
         if name not in data:
             return
+        #logging.info(f"status_update {data}")
         ps = data[name]
         if "color_data" in ps:
-            cd = ps["color_data"][0]
-            red = cd.get("R",None)
-            green = cd.get("G",None)
-            blue = cd.get("B",None)
-            self._update_color_data(red, green, blue, 1, None)
+            index = 0
+            for chain in ps["color_data"]:
+                red = chain.get("R",0)
+                green = chain.get("G",0)
+                blue = chain.get("B",0)
+                white = chain.get("W",0)
+                self._update_color_data(red, green, blue, white, index)
+                index+=1
 
     def get_strip_info(self: Strip) -> Dict[str, Any]:
         return {
@@ -114,14 +140,26 @@ class Strip():
         blue = int(blue * 255. + .5)
         green = int(green * 255. + .5)
         white = int(white * 255. + .5)
-        led_data = [red, green, blue, white]
-        self.neopixel.fill((red,green,blue))
+        led_data = (red, green, blue)
+
+        if self.order == "GRB":
+            led_data = (green, red, blue)
+        elif self.order == "RGBW":
+            led_data = (red, green, blue, white)
+        elif self.order == "GRBW":
+            led_data = (green, red, blue, white)
+
+        if index == 0:
+            index = None
+        
         if index is None:
-            
-            self._chain_data[:] = led_data * self.chain_count
+            self.neopixel.fill(led_data)
+            #self._chain_data[:] = led_data * self.chain_count
         else:
-            elem_size = len(led_data)
-            self._chain_data[(index-1)*elem_size:index*elem_size] = led_data
+            index = int(index)
+            self.neopixel[index] = led_data
+            #elem_size = len(led_data)
+            #self._chain_data[(index-1)*elem_size:index*elem_size] = led_data
 
     async def send_rpi_neopixel_command_impl(self: Strip,
                                      state: Dict[str, Any]) -> None:
@@ -151,7 +189,12 @@ class Strip():
         else:
             self.send_full_chain_data = True
             self.preset = preset
-            await self._send_rpi_neopixel_command({"on": True, "ps": preset})
+            self._update_color_data(self.initial_red,
+                                    self.initial_green,
+                                    self.initial_blue,
+                                    self.initial_white,
+                                    None)
+            #await self._send_rpi_neopixel_command({"on": True, "ps": preset})
 
     async def rpi_neopixel_off(self: Strip) -> None:
         logging.debug(f"RPI_NEOPIXEL: {self.name} off")
@@ -159,7 +202,8 @@ class Strip():
         # Without this calling SET_RPI_NEOPIXEL for a single pixel after RPI_NEOPIXEL_OFF
         # would send just that pixel
         self.send_full_chain_data = True
-        await self._send_rpi_neopixel_command({"on": False})
+        self._update_color_data(0,0,0,0,None)
+        #await self._send_rpi_neopixel_command({"on": False})
 
     def _rpi_neopixel_pixel(self: Strip, index: int) -> List[int]:
         led_color_data: List[int] = []
@@ -176,7 +220,7 @@ class Strip():
             f"INDEX={index} TRANSMIT={transmit}")
         self._update_color_data(red, green, blue, white, index)
         if transmit:
-
+            return
             # Base command for setting an led (for all active segments)
             # See https://kno.rpi_neopixel.ge/interfaces/json-api/
             state: Dict[str, Any] = {"on": True,
@@ -321,7 +365,8 @@ class RPI_NEOPIXEL:
         if strip not in self.strips:
             logging.info(f"Unknown RPI_NEOPIXEL strip: {strip}")
             return
-        if isinstance(index, int) and index < 0:
+        
+        if isinstance(index, int) and index <= 0:
             index = None
         await self.strips[strip].set_rpi_neopixel(red, green, blue, white,
                                           index,
