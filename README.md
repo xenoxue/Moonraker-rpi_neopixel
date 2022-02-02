@@ -29,10 +29,10 @@ This is work in progress and currently in "alpha" state.
 缝合的代码，有问题自己解决
 
 ## Installation 安装命令
-cd ~
-git clone https://github.com/xenoxue/Moonraker-rpi_neopixel.git
-cd Moonraker-rpi_neopixel
-./install-rpi_neopixel.sh
+    cd ~
+    git clone https://github.com/xenoxue/Moonraker-rpi_neopixel.git
+    cd Moonraker-rpi_neopixel
+    ./install-rpi_neopixel.sh
 
 ## Credit
 
