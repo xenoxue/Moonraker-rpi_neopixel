@@ -45,9 +45,9 @@ add_updater()
 install_neopixel()
 {
     echo "Installing adafruit-circuitpython-neopixel..."
-    sudo $(MOONRAKER-ENV_PATH)/bin/pip install rpi_ws281x adafruit-circuitpython-neopixel
+    sudo ${MOONRAKER-ENV_PATH}/bin/pip install rpi_ws281x adafruit-circuitpython-neopixel
     echo "Installing adafruit-blinka..."
-    sudo $(MOONRAKER-ENV_PATH)/bin/pip install --force-reinstall adafruit-blinka
+    sudo ${MOONRAKER-ENV_PATH}/bin/pip install --force-reinstall adafruit-blinka
 }
 
 # Step 5: ADD Sudoer nopasswd permission file to give more access for pi user.
