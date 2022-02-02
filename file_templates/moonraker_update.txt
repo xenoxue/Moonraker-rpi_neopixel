@@ -1,0 +1,5 @@
+[update_manager rpi_neopixel]
+type: git_repo
+path: ~/Moonraker-rpi_neopixel
+origin: https://github.com/xenoxue/Moonraker-rpi_neopixel.git
+is_system_service: False
