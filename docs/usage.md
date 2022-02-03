@@ -6,7 +6,7 @@ For led effect configuaration setup, Please refer to LED_EFFECT usage document: 
 # Command 命令
 this plugin is compatiable with SET_LED commands.
 
-and TWO addional command was added for direct control(refer to WLED command from Moonraker)
+and TWO addional command was added for direct control(refer to WLED command on Moonraker)
 
 本插件兼容klipper的SET_LED命令，用法可以参考Klipper的相关文档。
 
@@ -19,6 +19,8 @@ link: https://moonraker.readthedocs.io/en/latest/configuration/
 ```
 # wiring 接线
 Please check out this link for full details: https://learn.adafruit.com/neopixels-on-raspberry-pi/raspberry-pi-wiring
+
+接线的详细文档请参考： https://learn.adafruit.com/neopixels-on-raspberry-pi/raspberry-pi-wiring
 
 ## Connect directly to the raspberrypi 直插树莓派并且使用树莓派供电
 Pi 5V to NeoPixel 5V
@@ -44,7 +46,7 @@ Power supply 5V to NeoPixel 5V
 # Configuration 配置文件
 
 ## Standalone Setup 单独使用设置
-add the following to Moonraker.conf file
+add the following code to Moonraker.conf
 
 把以下代码添加到Moonraker.conf文件里面去
 ```
@@ -71,7 +73,11 @@ this pulgin can be controled as a Klipper Neopixel, By listening to the same nam
 
 To enable this awesome function, you will need to add a fake Neopixel to your klipper configuration file(printer.cfg).
 
-开启进阶设置的话，需要在Printer.cfg里面加入以下代码，请确保灯带命名保持一致
+开启进阶设置后，rpi_neopixel灯带将会代替Klipper原本的Neopixel工作。包括Fluidd的调色盘改色，以及LED Effect的支持都需要开启该功能。
+
+原理是通过监听同名的neopixel事件，从而自动同步颜色的变化。
+
+开启改功能需要在Printer.cfg里面加入以下代码，请确保灯带命名保持一致
 ```
   [neopixel case]
   #   make sure you have exactly the same name as rpi_neopixel, here I'm using "case"
