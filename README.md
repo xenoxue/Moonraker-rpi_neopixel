@@ -13,11 +13,11 @@ It's compatiable with Fluidd's color palette.
 
 本插件是使用第三方库Adafruit CircuitPython NeoPixel 来驱动灯带的，所以本质上只是一个解决方案，并没有多少核心代码。
 
-本插件兼容Klipper的Neopixel模块，但是会覆盖掉同名的灯带。
+本插件兼容Klipper的Neopixel模块，但是创建一个空白的同名的Neopixel灯带。
 
-本插件兼容Klipper的LED Effects灯效插件，巨酷，强烈推荐使用
+本插件兼容Klipper的LED Effects灯效插件，巨酷，强烈推荐使用。
 
-本插件兼容Fluidd的调色盘修改灯带颜色
+本插件兼容Fluidd的调色盘修改灯带颜色。
 
 
 ## Disclaimer 免责声明
@@ -38,6 +38,12 @@ This is work in progress and currently in "alpha" state.
 Documentation can be found [here](docs/usage.md).
 
 使用文档请点击 [这里](docs/usage.md).
+
+## Wanring 警告
+You can only create one rpi_neopixel due to some bug will caused while raspberrypi is controlling multiple strip.
+If you have more than one, connect them together and then wire them to your Raspberry Pi using a single connection.
+
+由于树莓派本身硬件上的局限性，是无法同时控制多个灯带。所以本插件仅支持一根led灯带，如果有需要的话，可以考虑将灯带串联起来。
 
 ## Credit
 
